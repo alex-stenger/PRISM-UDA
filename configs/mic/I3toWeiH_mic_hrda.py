@@ -96,10 +96,10 @@ n_gpus = 1
 gpu_model = 'NVIDIATITANRTX'
 runner = dict(type='IterBasedRunner', max_iters=40000)
 # Logging Configuration
-checkpoint_config = dict(by_epoch=False, interval=40000, max_keep_ckpts=1)
+checkpoint_config = dict(by_epoch=False, interval=5000, max_keep_ckpts=3)
 evaluation = dict(interval=4000, metric='mIoU')
 # Meta Information for Result Analysis
-name = 'i3toWeiH'
+name = 'i3toweih'
 exp = 'basic'
 name_dataset = 'uda_I3_to_WeiH'
 name_architecture = 'hrda1-512-0.1_daformer_sepaspp_sl_mitb5'
