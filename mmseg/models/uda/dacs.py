@@ -478,7 +478,7 @@ class DACS(UDADecorator):
                 # Plot the images
                 axs[0].imshow(target_img[j].cpu().numpy()[0,:,:])
                 axs[0].set_title('Target Image')
-                axs[1].imshow(pseudo_label[j].cpu().numpy()[0,:,:], cmap='gray')
+                axs[1].imshow(pseudo_label[j].cpu().numpy()[:,:], cmap='gray')
                 axs[1].set_title('Pseudo Label')
                 axs[2].imshow(target_sam[j].cpu().numpy()[0,:,:], cmap='gray')
                 axs[2].set_title('Target SAM')
