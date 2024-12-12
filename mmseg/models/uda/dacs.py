@@ -476,11 +476,11 @@ class DACS(UDADecorator):
                 )
 
                 # Plot the images
-                axs[0].imshow(target_img[j])
+                axs[0].imshow(target_img[j].cpu())
                 axs[0].set_title('Target Image')
-                axs[1].imshow(pseudo_label[j], cmap='cityscapes')
+                axs[1].imshow(pseudo_label[j].cpu(), cmap='cityscapes')
                 axs[1].set_title('Pseudo Label')
-                axs[2].imshow(target_sam[j], cmap='gray')
+                axs[2].imshow(target_sam[j].cpu(), cmap='gray')
                 axs[2].set_title('Target SAM')
 
                 # Turn off axis for all subplots
