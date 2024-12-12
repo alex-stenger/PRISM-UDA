@@ -491,7 +491,7 @@ class DACS(UDADecorator):
                 out_dir = os.path.join(self.train_cfg['work_dir'], 'debug')
                 os.makedirs(out_dir, exist_ok=True)
                 plt.savefig(
-                    os.path.join(out_dir, f'{iter_num:06d}_{j}.png')
+                    os.path.join(out_dir, f'{(self.local_iter + 1):06d}_{j}_new.png')
                 )
                 plt.close()
 
