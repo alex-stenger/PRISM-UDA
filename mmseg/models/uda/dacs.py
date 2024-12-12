@@ -459,6 +459,41 @@ class DACS(UDADecorator):
             #train_refinement_source(pseudo_label_source, sam_pseudo_label)
             #pseudo_label = refinement(pseudo_label, target_sam)
 
+            for j in range(batch_size):
+                rows, cols = 1, 3
+                fig, axs = plt.subplots(
+                    rows,
+                    cols,
+                    figsize=(3 * cols, 3 * rows),
+                    gridspec_kw={
+                        'hspace': 0.1,
+                        'wspace': 0.05,
+                        'top': 0.95,
+                        'bottom': 0.05,
+                        'right': 0.95,
+                        'left': 0.05
+                    },
+                )
+
+                # Plot the images
+                axs[0].imshow(target_img[j])
+                axs[0].set_title('Target Image')
+                axs[1].imshow(pseudo_label[j], cmap='cityscapes')
+                axs[1].set_title('Pseudo Label')
+                axs[2].imshow(target_sam[j], cmap='gray')
+                axs[2].set_title('Target SAM')
+
+                # Turn off axis for all subplots
+                for ax in axs.flat:
+                    ax.axis('off')
+
+                # Save the figure
+                os.makedirs(out_dir, exist_ok=True)
+                plt.savefig(
+                    os.path.join(out_dir, f'{iter_num:06d}_{j}.png')
+                )
+                plt.close()
+
             target_sam = target_sam.squeeze(1)  # Removes the singleton dimension
             pseudo_label = pseudo_label & target_sam
 

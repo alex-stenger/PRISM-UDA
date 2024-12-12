@@ -32,6 +32,10 @@ for CONFIG_FILE in $CONFIG_DIR/*.py; do
     JOB_NAME="test_$NAME"
     SLURM_SCRIPT="$OUTPUT_DIR/${JOB_NAME}.slurm"
 
+    # Extract source and target from the name
+    SOURCE_TO_TARGET=${NAME,,} # Convert to lowercase for consistency
+    TARGET=${SOURCE_TO_TARGET#*to} # Extract everything after "to"
+
     # Create the SLURM script
     cat <<EOL > $SLURM_SCRIPT
 #! /bin/bash
@@ -58,6 +62,8 @@ echo 'Config File:' \$CONFIG_FILE
 echo 'Checkpoint File:' \$CHECKPOINT_FILE
 echo 'Predictions Output Directory:' \$SHOW_DIR
 python -m tools.test \${CONFIG_FILE} \${CHECKPOINT_FILE} --eval mIoU --show-dir \${SHOW_DIR} --opacity 1
+load-python
+python get_results.py --pred_path \$SHOW_DIR --gt_path /home2020/home/miv/astenger/data/segdiff/${TARGET}/test/lbl/labels/
 EOL
 
     # Add this script to the launch script

@@ -6,7 +6,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16G
 #SBATCH --constraint="gpuv100|gpua40|gpua100"
-#SBATCH -o jobs/test_i3tolw4.out
+#SBATCH -o jobs/test_weihtolw4.out
 hostname
 source deactivate
 module load python/python-3.8.18
@@ -14,7 +14,7 @@ source ~/venv/hrda/bin/activate
 python --version
 echo 'START'
 
-TEST_ROOT=work_dirs/local-basic/241210_1548_i3tolw4_ead11
+TEST_ROOT=work_dirs/local-basic/241210_1548_weihtolw4_feb67
 CONFIG_FILE="${TEST_ROOT}/*${TEST_ROOT: -1}.py"
 CHECKPOINT_FILE="${TEST_ROOT}/latest.pth"
 SHOW_DIR="${TEST_ROOT}/preds"

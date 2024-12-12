@@ -1,16 +1,16 @@
-
 import os
 
 # Directories
 config_dir = "configs/mic"
 output_dir = "slurm_scripts"
+launcher_script_path = "launch_train.sh"
 
 # Ensure the output directory exists
 os.makedirs(output_dir, exist_ok=True)
 
 # Base SLURM script template
 slurm_template = """#!/bin/bash
-#SBATCH -p publicgpu -A miv
+#SBATCH -p grantgpu -A g2024a219g
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16G
 #SBATCH --constraint="gpua100|gpuv100"
@@ -24,6 +24,10 @@ echo 'START'
 python run_experiments.py --config {config_path}
 echo 'END'
 """
+
+# Initialize the launcher script
+with open(launcher_script_path, "w") as launcher_file:
+    launcher_file.write("#!/bin/bash\n\n")  # Shebang and newline
 
 # Iterate over all configuration files in the config directory
 for config_file in os.listdir(config_dir):
@@ -40,6 +44,13 @@ for config_file in os.listdir(config_dir):
         # Write the SLURM script to the file
         with open(slurm_output_path, "w") as f:
             f.write(slurm_script)
+        
+        # Append a line to the launcher script to submit the SLURM job
+        with open(launcher_script_path, "a") as launcher_file:
+            launcher_file.write(f"sbatch {slurm_output_path}\n")
+
+# Make the launcher script executable
+os.chmod(launcher_script_path, 0o755)
 
 print(f"SLURM scripts generated in '{output_dir}' directory.")
-
+print(f"Launcher script created at '{launcher_script_path}'.")

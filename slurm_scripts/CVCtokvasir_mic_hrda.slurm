@@ -3,12 +3,12 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16G
 #SBATCH --constraint="gpua100|gpuv100"
-#SBATCH -o jobs/LW4toWeiH_mic_hrda.out
+#SBATCH -o jobs/CVCtokvasir_mic_hrda.out
 hostname
 source deactivate
 module load python/python-3.8.18
 source ~/venv/hrda/bin/activate
 python --version
 echo 'START'
-python run_experiments.py --config configs/mic/LW4toWeiH_mic_hrda.py
+python run_experiments.py --config configs/mic/CVCtokvasir_mic_hrda.py
 echo 'END'
