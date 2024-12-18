@@ -10,6 +10,8 @@ import mmcv
 import numpy as np
 import torch
 import torch.distributed as dist
+import torch.nn as nn
+import torch.nn.functional as F
 from mmcv import mkdir_or_exist
 from mmcv.runner import BaseModule, auto_fp16
 from PIL import Image
@@ -273,3 +275,141 @@ class BaseSegmentor(BaseModule, metaclass=ABCMeta):
             warnings.warn('show==False and out_file is not specified, only '
                           'result image will be returned')
             return img
+
+class DoubleConvPerso(nn.Module):
+    """(convolution => [BN] => ReLU) * 2"""
+
+    def __init__(self, in_channels, out_channels, norm_layer, mid_channels=None):
+        super().__init__()
+        
+        if not mid_channels:
+            mid_channels = out_channels
+            
+        self.double_conv = nn.Sequential(
+            nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(mid_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
+            
+        
+        if norm_layer == "bn" :
+            
+            self.double_conv = nn.Sequential(
+                nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1, bias=False),
+                nn.BatchNorm2d(mid_channels),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
+                nn.BatchNorm2d(out_channels),
+                nn.ReLU(inplace=True)
+            )
+        
+        elif norm_layer == "in" :
+            
+            self.double_conv = nn.Sequential(
+                nn.Conv2d(in_channels, mid_channels, kernel_size=3, padding=1, bias=False),
+                nn.InstanceNorm2d(mid_channels),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
+                nn.InstanceNorm2d(out_channels),
+                nn.ReLU(inplace=True)
+            )
+
+    def forward(self, x):
+        return self.double_conv(x)
+
+
+class Down(nn.Module):
+    """Downscaling with maxpool then double conv"""
+
+    def __init__(self, in_channels, out_channels, norm_layer):
+        super().__init__()
+        self.maxpool_conv = nn.Sequential(
+            nn.MaxPool2d(2),
+            DoubleConvPerso(in_channels, out_channels, norm_layer)
+        )
+
+    def forward(self, x):
+        return self.maxpool_conv(x)
+
+
+class Up(nn.Module):
+    """Upscaling then double conv"""
+
+    def __init__(self, in_channels, out_channels, norm_layer, bilinear=True, skip_connection=True):
+        super().__init__()
+        
+        self.skip_connection = skip_connection
+
+        # if bilinear, use the normal convolutions to reduce the number of channels
+        if bilinear:
+            self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+            self.conv = DoubleConvPerso(in_channels, out_channels, in_channels // 2, norm_layer)
+        else:
+            self.up = nn.ConvTranspose2d(in_channels, in_channels // 2, kernel_size=2, stride=2)
+            self.conv = DoubleConvPerso(in_channels, out_channels, norm_layer)
+
+    def forward(self, x1, x2):
+        
+        if self.skip_connection :
+            x1 = self.up(x1)
+            # input is CHW
+            diffY = x2.size()[2] - x1.size()[2]
+            diffX = x2.size()[3] - x1.size()[3]
+
+            x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2,
+                        diffY // 2, diffY - diffY // 2])
+            # if you have padding issues, see
+            # https://github.com/HaiyongJiang/U-Net-Pytorch-Unstructured-Buggy/commit/0e854509c2cea854e247a9c615f175f76fbb2e3a
+            # https://github.com/xiaopeng-liao/Pytorch-UNet/commit/8ebac70e633bac59fc22bb5195e513d5832fb3bd
+            x = torch.cat([x2, x1], dim=1)
+            return self.conv(x)
+        
+        else :
+            x1 = self.up(x1)
+            return self.conv(x1)
+
+
+class OutConv(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(OutConv, self).__init__()
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=1)
+
+    def forward(self, x):
+        return self.conv(x)
+
+    
+class UNet(nn.Module):
+    def __init__(self, in_channel=2, n_classes=1, norm_layer="bn", bilinear=False):
+        super(UNet, self).__init__()
+        self.in_channel = in_channel
+        self.n_classes = n_classes
+        self.bilinear = bilinear
+        self.norm_layer = norm_layer
+
+        self.inc = DoubleConvPerso(in_channel, 64, norm_layer)
+        self.down1 = Down(64, 128, norm_layer)
+        self.down2 = Down(128, 256, norm_layer)
+        self.down3 = Down(256, 512, norm_layer)
+        factor = 2 if bilinear else 1
+        self.down4 = Down(512, 1024 // factor, norm_layer)
+        self.up1 = Up(1024, 512 // factor, norm_layer, bilinear)
+        self.up2 = Up(512, 256 // factor, norm_layer, bilinear)
+        self.up3 = Up(256, 128 // factor, norm_layer, bilinear)
+        self.up4 = Up(128, 64, norm_layer, bilinear)
+        self.outc = OutConv(64, n_classes)
+
+    def forward(self, x):
+        x1 = self.inc(x)
+        d1 = self.down1(x1)
+        d2 = self.down2(d1)
+        d3 = self.down3(d2)
+        d4 = self.down4(d3)
+        u1 = self.up1(d4, d3)
+        u2 = self.up2(u1, d2)
+        u3 = self.up3(u2, d1)
+        u4 = self.up4(u3, x1)
+        logits = self.outc(u4)
+        return logits

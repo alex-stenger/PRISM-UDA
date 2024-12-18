@@ -39,7 +39,7 @@ from mmseg.models.utils.dacs_transforms import (denorm, get_class_masks,
 from mmseg.models.utils.visualization import prepare_debug_out, subplotimg
 from mmseg.utils.utils import downscale_label_ratio
 
-#import segmentation_models_pytorch as smp #Added
+from mmseg.models.segmentors.base import UNet
 
 
 def _params_equal(ema_model, model):
@@ -101,6 +101,10 @@ class DACS(UDADecorator):
             self.imnet_model = build_segmentor(deepcopy(cfg['model']))
         else:
             self.imnet_model = None
+
+        #Adding for our training
+        self.network = None
+        self.optimizer = None
 
     def get_ema_model(self):
         return get_module(self.ema_model)
@@ -171,23 +175,24 @@ class DACS(UDADecorator):
             log_vars=log_vars, num_samples=len(data_batch['img_metas']))
         return outputs
     
-    #def train_refinement_source(pl_source, sam_source, network, optimizer, iter, device): #ADDED
-    #    if network is None : #Initialization du réseau et tutti quanti
-    #        network = smp.Unet(
-    #            encoder_name="resnet34",       
-    #            encoder_weights=None,          
-    #            in_channels=6, #for both mask, ?                 
-    #            classes=1,                      
-    #        )
-    #        network = network.to(device)
-    #        optimizer = torch.optim.Adam(params=network.parameters(), lr=0.0001)
+    def train_refinement_source(self, pl_source, sam_source, gt_source, network, optimizer, device): #ADDED
+        if network is None : #Initialization du réseau et tutti quanti
+            network = UNet()
+            network = network.to(device)
+            optimizer = torch.optim.Adam(params=network.parameters(), lr=0.0001)
         
-    #    ce_loss = torch.nn.BCEWithLogitsLoss()
+        network.train()
+        ce_loss = torch.nn.BCEWithLogitsLoss()
+        pl_source = pl_source.unsqueeze(1)
+        concat = torch.cat((pl_source, sam_source), dim=1).float()
+        
+        pred = network(concat)
+        loss = ce_loss(pred, gt_source.float())
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
 
-
-    #    refined_source = network(pl_source, sam_source)
-
-    #    return network # ?
+        return network, optimizer
 
 
     def masked_feat_dist(self, f1, f2, mask=None):
@@ -456,11 +461,17 @@ class DACS(UDADecorator):
 
             # Idée de refinement entrainé sur gt_source/sam_source ?
 
-            #train_refinement_source(pseudo_label_source, sam_pseudo_label)
-            #pseudo_label = refinement(pseudo_label, target_sam)
+            #train_refinement_source(pl_source, sam_source, gt_source, network, optimizer, device)
+            self.network, self.optimizer = self.train_refinement_source(pseudo_label_source, sam_pseudo_label, gt_semantic_seg, self.network, self.optimizer, dev)
+
+            with torch.no_grad():
+                self.network.eval()
+                pseudo_label = pseudo_label.unsqueeze(1)
+                concat = torch.cat((pseudo_label, target_sam), dim=1).float()
+                pseudo_label_ref = self.network(concat)
 
             for j in range(batch_size):
-                rows, cols = 1, 3
+                rows, cols = 1, 4  # Increase cols to 4 for the new plot
                 fig, axs = plt.subplots(
                     rows,
                     cols,
@@ -476,12 +487,17 @@ class DACS(UDADecorator):
                 )
 
                 # Plot the images
-                axs[0].imshow(target_img[j].cpu().numpy()[0,:,:])
+                axs[0].imshow(target_img[j].cpu().numpy()[0, :, :])
                 axs[0].set_title('Target Image')
-                axs[1].imshow(pseudo_label[j].cpu().numpy()[:,:], cmap='gray')
+
+                axs[1].imshow(pseudo_label[j].cpu().numpy()[:, :], cmap='gray')
                 axs[1].set_title('Pseudo Label')
-                axs[2].imshow(target_sam[j].cpu().numpy()[0,:,:], cmap='gray')
+
+                axs[2].imshow(target_sam[j].cpu().numpy()[0, :, :], cmap='gray')
                 axs[2].set_title('Target SAM')
+
+                axs[3].imshow(pseudo_label_ref[j].cpu().numpy()[0, :, :], cmap='gray')  # New plot
+                axs[3].set_title('Pseudo Label Ref')
 
                 # Turn off axis for all subplots
                 for ax in axs.flat:
@@ -495,15 +511,7 @@ class DACS(UDADecorator):
                 )
                 plt.close()
 
-            target_sam = target_sam.squeeze(1)  # Removes the singleton dimension
-            pseudo_label = pseudo_label & target_sam
-
-            #plt.imshow(target_img.cpu().numpy()[0,0,:,:])
-            #plt.show()
-            #plt.imshow(sam_pseudo_label.cpu().numpy()[0,0,:,:])
-            #plt.show()
-            #plt.imshow(target_sam.cpu().numpy()[0,0,:,:])
-            #plt.show()
+            #target_sam = target_sam.squeeze(1)  # Removes the singleton dimension
 
             # Apply mixing
             mixed_img, mixed_lbl = [None] * batch_size, [None] * batch_size
