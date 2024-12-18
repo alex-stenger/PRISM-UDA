@@ -5,12 +5,14 @@ config_dir = "configs/mic"
 output_dir = "slurm_scripts"
 launcher_script_path = "launch_train.sh"
 
+##SBATCH -p grantgpu -A g2024a219g
+
 # Ensure the output directory exists
 os.makedirs(output_dir, exist_ok=True)
 
 # Base SLURM script template
 slurm_template = """#!/bin/bash
-#SBATCH -p grantgpu -A g2024a219g
+#SBATCH -p publicgpu -A miv
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16G
 #SBATCH --constraint="gpua100|gpuv100"

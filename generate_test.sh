@@ -33,7 +33,7 @@ for CONFIG_FILE in $CONFIG_DIR/*.py; do
     SLURM_SCRIPT="$OUTPUT_DIR/${JOB_NAME}.slurm"
 
     # Extract source and target from the name
-    SOURCE_TO_TARGET=${NAME,,} # Convert to lowercase for consistency
+    SOURCE_TO_TARGET=${NAME}
     TARGET=${SOURCE_TO_TARGET#*to} # Extract everything after "to"
 
     # Create the SLURM script

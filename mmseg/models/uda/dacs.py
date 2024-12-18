@@ -171,7 +171,7 @@ class DACS(UDADecorator):
             log_vars=log_vars, num_samples=len(data_batch['img_metas']))
         return outputs
     
-    #def train_refinement_source(pl_source, sam_source, network, cpt, device): #ADDED
+    #def train_refinement_source(pl_source, sam_source, network, optimizer, iter, device): #ADDED
     #    if network is None : #Initialization du réseau et tutti quanti
     #        network = smp.Unet(
     #            encoder_name="resnet34",       
