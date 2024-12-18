@@ -469,6 +469,7 @@ class DACS(UDADecorator):
                 pseudo_label = pseudo_label.unsqueeze(1)
                 concat = torch.cat((pseudo_label, target_sam), dim=1).float()
                 pseudo_label_ref = self.network(concat)
+                pseudo_label = pseudo_label.squeeze(1)
 
             for j in range(batch_size):
                 rows, cols = 1, 4  # Increase cols to 4 for the new plot
@@ -512,6 +513,7 @@ class DACS(UDADecorator):
                 plt.close()
 
             #target_sam = target_sam.squeeze(1)  # Removes the singleton dimension
+            pseudo_label = (pseudo_label_ref.squeeze(1)>0.5).long()
 
             # Apply mixing
             mixed_img, mixed_lbl = [None] * batch_size, [None] * batch_size

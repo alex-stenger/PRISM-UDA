@@ -65,7 +65,7 @@ data = dict(
     # Use one separate thread/worker for data loading.
     workers_per_gpu=1,
     # Batch size
-    samples_per_gpu=2,
+    samples_per_gpu=1,
 )
 # MIC Parameters
 uda = dict(
