@@ -374,13 +374,6 @@ class DACS(UDADecorator):
             'std': stds[0].unsqueeze(0)
         }
 
-        if self.local_iter < 1500 :
-            target_img, img = img, target_img
-            target_sam, gt_semantic_seg = gt_semantic_seg, target_sam
-            target_img_metas, img_metas = img_metas, target_img_metas
-        else :
-            None
-
         # Train on source images
         clean_losses = self.get_model().forward_train(
             img, img_metas, gt_semantic_seg, return_feat=True)  #Goes into the hrda_encoder_decoder forward train function
@@ -469,10 +462,7 @@ class DACS(UDADecorator):
             # Idée de refinement entrainé sur gt_source/sam_source ?
 
             #train_refinement_source(pl_source, sam_source, gt_source, network, optimizer, device)
-            if self.local_iter < 1500 :
-                print(self.local_iter)
-                #self.network, self.optimizer = self.train_refinement_source(pseudo_label_source, sam_pseudo_label, gt_semantic_seg, self.network, self.optimizer, dev)
-                self.network, self.optimizer = self.train_refinement_source(pseudo_label, sam_pseudo_label, target_sam, self.network, self.optimizer, dev)
+            self.network, self.optimizer = self.train_refinement_source(pseudo_label_source, sam_pseudo_label, gt_semantic_seg, self.network, self.optimizer, dev)
 
             with torch.no_grad():
                 self.network.eval()

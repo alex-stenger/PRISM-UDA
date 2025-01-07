@@ -62,6 +62,7 @@ echo 'Config File:' \$CONFIG_FILE
 echo 'Checkpoint File:' \$CHECKPOINT_FILE
 echo 'Predictions Output Directory:' \$SHOW_DIR
 python -m tools.test \${CONFIG_FILE} \${CHECKPOINT_FILE} --eval mIoU --show-dir \${SHOW_DIR} --opacity 1
+deactivate
 load-python
 python get_results.py --pred_path \$SHOW_DIR --gt_path /home2020/home/miv/astenger/data/segdiff/${TARGET}/test/lbl/labels/
 EOL
