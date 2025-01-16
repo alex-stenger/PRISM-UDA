@@ -374,6 +374,13 @@ class DACS(UDADecorator):
             'std': stds[0].unsqueeze(0)
         }
 
+        if self.local_iter < 3000 :
+            target_img, img = img, target_img
+            target_sam, gt_semantic_seg = gt_semantic_seg, target_sam
+            target_img_metas, img_metas = img_metas, target_img_metas
+        else :
+            None
+
         # Train on source images
         clean_losses = self.get_model().forward_train(
             img, img_metas, gt_semantic_seg, return_feat=True)  #Goes into the hrda_encoder_decoder forward train function
@@ -462,58 +469,62 @@ class DACS(UDADecorator):
             # Idée de refinement entrainé sur gt_source/sam_source ?
 
             #train_refinement_source(pl_source, sam_source, gt_source, network, optimizer, device)
-            self.network, self.optimizer = self.train_refinement_source(pseudo_label_source, sam_pseudo_label, gt_semantic_seg, self.network, self.optimizer, dev)
+            if (self.local_iter > 1500 and self.local_iter < 3000):
+                print(self.local_iter)
+                #self.network, self.optimizer = self.train_refinement_source(pseudo_label_source, sam_pseudo_label, gt_semantic_seg, self.network, self.optimizer, dev)
+                self.network, self.optimizer = self.train_refinement_source(pseudo_label, sam_pseudo_label, target_sam, self.network, self.optimizer, dev)
 
-            with torch.no_grad():
-                self.network.eval()
-                pseudo_label = pseudo_label.unsqueeze(1)
-                concat = torch.cat((pseudo_label, target_sam), dim=1).float()
-                pseudo_label_ref = self.network(concat)
-                pseudo_label = pseudo_label.squeeze(1)
+            if self.local_iter > 1500 :
+                with torch.no_grad():
+                    self.network.eval()
+                    pseudo_label = pseudo_label.unsqueeze(1)
+                    concat = torch.cat((pseudo_label, target_sam), dim=1).float()
+                    pseudo_label_ref = self.network(concat)
+                    pseudo_label = pseudo_label.squeeze(1)
 
-            for j in range(batch_size):
-                rows, cols = 1, 4  # Increase cols to 4 for the new plot
-                fig, axs = plt.subplots(
-                    rows,
-                    cols,
-                    figsize=(3 * cols, 3 * rows),
-                    gridspec_kw={
-                        'hspace': 0.1,
-                        'wspace': 0.05,
-                        'top': 0.95,
-                        'bottom': 0.05,
-                        'right': 0.95,
-                        'left': 0.05
-                    },
-                )
+                for j in range(batch_size):
+                    rows, cols = 1, 4  # Increase cols to 4 for the new plot
+                    fig, axs = plt.subplots(
+                        rows,
+                        cols,
+                        figsize=(3 * cols, 3 * rows),
+                        gridspec_kw={
+                            'hspace': 0.1,
+                            'wspace': 0.05,
+                            'top': 0.95,
+                            'bottom': 0.05,
+                            'right': 0.95,
+                            'left': 0.05
+                        },
+                    )
 
-                # Plot the images
-                axs[0].imshow(target_img[j].cpu().numpy()[0, :, :])
-                axs[0].set_title('Target Image')
+                    # Plot the images
+                    axs[0].imshow(target_img[j].cpu().numpy()[0, :, :])
+                    axs[0].set_title('Target Image')
 
-                axs[1].imshow(pseudo_label[j].cpu().numpy()[:, :], cmap='gray')
-                axs[1].set_title('Pseudo Label')
+                    axs[1].imshow(pseudo_label[j].cpu().numpy()[:, :], cmap='gray')
+                    axs[1].set_title('Pseudo Label')
 
-                axs[2].imshow(target_sam[j].cpu().numpy()[0, :, :], cmap='gray')
-                axs[2].set_title('Target SAM')
+                    axs[2].imshow(target_sam[j].cpu().numpy()[0, :, :], cmap='gray')
+                    axs[2].set_title('Target SAM')
 
-                axs[3].imshow(pseudo_label_ref[j].cpu().numpy()[0, :, :], cmap='gray')  # New plot
-                axs[3].set_title('Pseudo Label Ref')
+                    axs[3].imshow(pseudo_label_ref[j].cpu().numpy()[0, :, :], cmap='gray')  # New plot
+                    axs[3].set_title('Pseudo Label Ref')
 
-                # Turn off axis for all subplots
-                for ax in axs.flat:
-                    ax.axis('off')
+                    # Turn off axis for all subplots
+                    for ax in axs.flat:
+                        ax.axis('off')
 
-                # Save the figure
-                out_dir = os.path.join(self.train_cfg['work_dir'], 'debug')
-                os.makedirs(out_dir, exist_ok=True)
-                plt.savefig(
-                    os.path.join(out_dir, f'{(self.local_iter + 1):06d}_{j}_new.png')
-                )
-                plt.close()
+                    # Save the figure
+                    out_dir = os.path.join(self.train_cfg['work_dir'], 'debug')
+                    os.makedirs(out_dir, exist_ok=True)
+                    plt.savefig(
+                        os.path.join(out_dir, f'{(self.local_iter + 1):06d}_{j}_new.png')
+                    )
+                    plt.close()
 
-            #target_sam = target_sam.squeeze(1)  # Removes the singleton dimension
-            pseudo_label = (pseudo_label_ref.squeeze(1)>0.5).long()
+                #target_sam = target_sam.squeeze(1)  # Removes the singleton dimension
+                pseudo_label = (pseudo_label_ref.squeeze(1)>0.5).long()
 
             # Apply mixing
             mixed_img, mixed_lbl = [None] * batch_size, [None] * batch_size
