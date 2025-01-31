@@ -199,7 +199,7 @@ class DACS(UDADecorator):
         plt.close()
         print(f"Loss plot saved at {save_path}")
     
-    def is_sliding_mean_loss_decreased(self, loss_list, current_iter, window_size=100):
+    def is_sliding_mean_loss_decreased(self, loss_list, current_iter, window_size=200):
         """
         Check if the sliding mean loss has decreased.
         
