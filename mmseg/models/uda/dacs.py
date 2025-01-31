@@ -105,6 +105,8 @@ class DACS(UDADecorator):
         #Adding for our training
         self.network = None
         self.optimizer = None
+        self.masked_loss_list = []
+        self.refin_loss_list = []
 
     def get_ema_model(self):
         return get_module(self.ema_model)
@@ -175,6 +177,50 @@ class DACS(UDADecorator):
             log_vars=log_vars, num_samples=len(data_batch['img_metas']))
         return outputs
     
+    def plot_loss_evolution(self, loss_values, plot_name="loss_plot.png", out_dir="./", loss_label="Loss"):
+        """
+        Plots the evolution of loss over epochs.
+        
+        Parameters:
+            loss_values (list): List of loss values recorded over epochs.
+            out_dir (str): Directory to save the loss plot.
+            plot_name (str): Filename for the saved loss plot.
+            loss_label (str): Label for the loss on the y-axis.
+        """
+        plt.figure()
+        plt.plot(range(1, len(loss_values) + 1), loss_values, marker='+', linestyle='None')
+        plt.xlabel('Epochs')
+        plt.ylabel(loss_label)
+        plt.title(f'{loss_label} Evolution')
+
+        out_dir = os.path.join(self.train_cfg['work_dir'])
+        save_path = os.path.join(out_dir, plot_name)
+        plt.savefig(save_path)
+        plt.close()
+        print(f"Loss plot saved at {save_path}")
+    
+    def is_sliding_mean_loss_decreased(self, loss_list, current_iter, window_size=100):
+        """
+        Check if the sliding mean loss has decreased.
+        
+        Args:
+        loss_list (list): List of loss values
+        window_size (int): Size of the sliding window (default 100)
+        
+        Returns:
+        bool: True if sliding mean loss has decreased, False otherwise
+        """
+        # Check if list is long enough for sliding window
+        if len(loss_list) < window_size * 2 + 1 :
+            return False
+        
+        # Calculate sliding means for first and second half of the window
+        first_half_mean = sum(loss_list[current_iter-(2*window_size):current_iter-window_size]) / window_size
+        second_half_mean = sum(loss_list[current_iter-window_size:current_iter]) / window_size
+        
+        # Return True if sliding mean has decreased
+        return second_half_mean < first_half_mean
+    
     def train_refinement_source(self, pl_source, sam_source, gt_source, network, optimizer, device): #ADDED
         if network is None : #Initialization du réseau et tutti quanti
             network = UNet()
@@ -190,7 +236,9 @@ class DACS(UDADecorator):
         loss = ce_loss(pred, gt_source.float())
         optimizer.zero_grad()
         loss.backward()
+        self.refin_loss_list.append(loss.item())
         optimizer.step()
+        self.plot_loss_evolution(self.refin_loss_list,plot_name="refin_loss.png")
 
         return network, optimizer
 
@@ -462,10 +510,10 @@ class DACS(UDADecorator):
             # Idée de refinement entrainé sur gt_source/sam_source ?
 
             #train_refinement_source(pl_source, sam_source, gt_source, network, optimizer, device)
-            if (self.local_iter > 3000 and self.local_iter < 7500):
+            if (self.is_sliding_mean_loss_decreased(self.masked_loss_list, self.local_iter) and self.local_iter < 7500):
                 self.network, self.optimizer = self.train_refinement_source(pseudo_label_source, sam_pseudo_label, gt_semantic_seg, self.network, self.optimizer, dev)
 
-            if self.local_iter > 4000 :
+            if self.is_sliding_mean_loss_decreased(self.masked_loss_list, self.local_iter) :
                 with torch.no_grad():
                     self.network.eval()
                     pseudo_label = pseudo_label.unsqueeze(1)
@@ -561,6 +609,8 @@ class DACS(UDADecorator):
             masked_loss, masked_log_vars = self._parse_losses(masked_loss)
             log_vars.update(masked_log_vars)
             masked_loss.backward()
+            self.masked_loss_list.append(masked_loss.item())
+            self.plot_loss_evolution(self.masked_loss_list,plot_name="masked_loss.png")
 
         if self.local_iter % self.debug_img_interval == 0 and \
                 not self.source_only:
