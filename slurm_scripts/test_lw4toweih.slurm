@@ -14,7 +14,7 @@ source ~/venv/hrda/bin/activate
 python --version
 echo 'START'
 
-TEST_ROOT=work_dirs/local-basic/250115_1110_lw4toweih_3b784
+TEST_ROOT=work_dirs/local-basic/250123_1022_lw4toweih_bc737
 CONFIG_FILE="${TEST_ROOT}/*${TEST_ROOT: -1}.py"
 CHECKPOINT_FILE="${TEST_ROOT}/latest.pth"
 SHOW_DIR="${TEST_ROOT}/preds"

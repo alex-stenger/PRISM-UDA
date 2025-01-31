@@ -6,7 +6,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16G
 #SBATCH --constraint="gpuv100|gpua40|gpua100"
-#SBATCH -o jobs/test_CVCtokvasir.out
+#SBATCH -o jobs/test_t2toflair.out
 hostname
 source deactivate
 module load python/python-3.8.18
@@ -14,7 +14,7 @@ source ~/venv/hrda/bin/activate
 python --version
 echo 'START'
 
-TEST_ROOT=work_dirs/local-basic/250123_0949_CVCtokvasir_8c8cf
+TEST_ROOT=work_dirs/local-basic/250123_0930_t2toflair_18e49
 CONFIG_FILE="${TEST_ROOT}/*${TEST_ROOT: -1}.py"
 CHECKPOINT_FILE="${TEST_ROOT}/latest.pth"
 SHOW_DIR="${TEST_ROOT}/preds"
@@ -24,4 +24,4 @@ echo 'Predictions Output Directory:' $SHOW_DIR
 python -m tools.test ${CONFIG_FILE} ${CHECKPOINT_FILE} --eval mIoU --show-dir ${SHOW_DIR} --opacity 1
 deactivate
 load-python
-python get_results.py --pred_path $SHOW_DIR --gt_path /home2020/home/miv/astenger/data/segdiff/kvasir/test/lbl/labels/
+python get_results.py --pred_path $SHOW_DIR --gt_path /home2020/home/miv/astenger/data/segdiff/flair/test/lbl/labels/

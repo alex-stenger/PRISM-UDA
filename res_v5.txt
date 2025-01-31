@@ -1,0 +1,45 @@
+warmup 3k-10k
+label partir de 3k
+
+
+==> jobs/test_CVCtokvasir_res.out <==
+Global IoU: 0.7650457439806678, Global mean IoU: 0, Global Dice: 0.8302959061038339, Global mean Dice: 0
+
+==> jobs/test_flairtot1_res.out <==
+Global IoU: 0.27606485264876635, Global mean IoU: 0, Global Dice: 0.39330247090256215, Global mean Dice: 0
+
+==> jobs/test_flairtot2_res.out <==
+Global IoU: 0.3571493459217014, Global mean IoU: 0, Global Dice: 0.47690140757209065, Global mean Dice: 0
+
+==> jobs/test_i3tolw4_res.out <==
+Global IoU: 0.6816861938816455, Global mean IoU: 0, Global Dice: 0.7812972315736466, Global mean Dice: 0
+
+==> jobs/test_i3toweih_res.out <==
+Global IoU: 0.6114652503606627, Global mean IoU: 0, Global Dice: 0.6968541316875471, Global mean Dice: 0
+
+==> jobs/test_kvasirtoCVC_res.out <==
+Global IoU: 0.7939532369052456, Global mean IoU: 0, Global Dice: 0.8645385401125273, Global mean Dice: 0
+
+==> jobs/test_lw4toi3_res.out <==
+Global IoU: 0.39002755639302067, Global mean IoU: 0, Global Dice: 0.42598430901735945, Global mean Dice: 0
+
+==> jobs/test_lw4toweih_res.out <==
+Global IoU: 0.3635861941773333, Global mean IoU: 0, Global Dice: 0.4837768172325966, Global mean Dice: 0
+
+==> jobs/test_t1toflair_res.out <==
+Global IoU: 0.24595133156085944, Global mean IoU: 0, Global Dice: 0.36075963176807185, Global mean Dice: 0
+
+==> jobs/test_t1tot2_res.out <==
+Global IoU: 0.39220239374175747, Global mean IoU: 0, Global Dice: 0.5128436374291246, Global mean Dice: 0
+
+==> jobs/test_t2toflair_res.out <==
+Global IoU: 0.36594567020251634, Global mean IoU: 0, Global Dice: 0.4794651527392444, Global mean Dice: 0
+
+==> jobs/test_t2tot1_res.out <==
+Global IoU: 0.20248346335692335, Global mean IoU: 0, Global Dice: 0.310381077899846, Global mean Dice: 0
+
+==> jobs/test_weihtoi3_res.out <==
+Global IoU: 0.4446331433691126, Global mean IoU: 0, Global Dice: 0.5149853790380317, Global mean Dice: 0
+
+==> jobs/test_weihtolw4_res.out <==
+Global IoU: 0.7015352576008372, Global mean IoU: 0, Global Dice: 0.783132757133714, Global mean Dice: 0

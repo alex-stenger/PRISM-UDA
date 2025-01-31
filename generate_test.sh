@@ -5,6 +5,7 @@ CONFIG_DIR="configs/mic"
 WORK_DIR="work_dirs/local-basic"
 OUTPUT_DIR="slurm_scripts"
 LAUNCH_SCRIPT="launch_test.sh"
+LAUNCH_SCRIPT_RES="launch_test_res.sh"
 
 # Create the output directory
 mkdir -p $OUTPUT_DIR
@@ -14,6 +15,11 @@ echo "#!/bin/bash" > $LAUNCH_SCRIPT
 echo "" >> $LAUNCH_SCRIPT
 echo "# Launch all generated SLURM test scripts" >> $LAUNCH_SCRIPT
 echo "" >> $LAUNCH_SCRIPT
+
+echo "#!/bin/bash" > $LAUNCH_SCRIPT_RES
+echo "" >> $LAUNCH_SCRIPT_RES
+echo "# Launch all generated SLURM test scripts" >> $LAUNCH_SCRIPT_RES
+echo "" >> $LAUNCH_SCRIPT_RES
 
 # Iterate through each config file
 for CONFIG_FILE in $CONFIG_DIR/*.py; do
@@ -31,6 +37,7 @@ for CONFIG_FILE in $CONFIG_DIR/*.py; do
     # Extract the job name and directory for the SLURM script
     JOB_NAME="test_$NAME"
     SLURM_SCRIPT="$OUTPUT_DIR/${JOB_NAME}.slurm"
+    SLURM_SCRIPT_RES="$OUTPUT_DIR/${JOB_NAME}_res.slurm"
 
     # Extract source and target from the name
     SOURCE_TO_TARGET=${NAME}
@@ -71,8 +78,37 @@ EOL
     echo "sbatch $SLURM_SCRIPT" >> $LAUNCH_SCRIPT
 
     echo "Generated SLURM script for $NAME at $SLURM_SCRIPT"
+
+
+cat <<EOL > $SLURM_SCRIPT_RES
+#! /bin/bash
+#SBATCH -p public -A miv
+#SBATCH -N 1
+#SBATCH --mem=16G
+#SBATCH -o jobs/${JOB_NAME}_res.out
+hostname
+source deactivate
+echo 'START'
+
+TEST_ROOT=$LATEST_DIR
+CONFIG_FILE="\${TEST_ROOT}/*\${TEST_ROOT: -1}.py"
+CHECKPOINT_FILE="\${TEST_ROOT}/latest.pth"
+SHOW_DIR="\${TEST_ROOT}/preds"
+module load python/python-3.11.4 && activate deep-learning
+python get_results.py --pred_path \$SHOW_DIR --gt_path /home2020/home/miv/astenger/data/segdiff/${TARGET}/test/lbl/labels/
+EOL
+
+    # Add this script to the launch script
+    echo "sbatch $SLURM_SCRIPT_RES" >> $LAUNCH_SCRIPT_RES
+
+    echo "Generated SLURM script for $NAME at $SLURM_SCRIPT_RES"
+
 done
 
 # Make the launch script executable
 chmod +x $LAUNCH_SCRIPT
 echo "Launch script created: $LAUNCH_SCRIPT"
+
+chmod +x $LAUNCH_SCRIPT_RES
+echo "Launch script res created: $LAUNCH_SCRIPT_RESS"
+

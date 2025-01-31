@@ -462,10 +462,10 @@ class DACS(UDADecorator):
             # Idée de refinement entrainé sur gt_source/sam_source ?
 
             #train_refinement_source(pl_source, sam_source, gt_source, network, optimizer, device)
-            if (self.local_iter > 3000 and self.local_iter < 10000):
+            if (self.local_iter > 3000 and self.local_iter < 7500):
                 self.network, self.optimizer = self.train_refinement_source(pseudo_label_source, sam_pseudo_label, gt_semantic_seg, self.network, self.optimizer, dev)
 
-            if self.local_iter > 3000 :
+            if self.local_iter > 4000 :
                 with torch.no_grad():
                     self.network.eval()
                     pseudo_label = pseudo_label.unsqueeze(1)
