@@ -7,7 +7,7 @@ hostname
 source deactivate
 echo 'START'
 
-TEST_ROOT=work_dirs/local-basic/250124_1229_kvasirtoCVC_07f26
+TEST_ROOT=work_dirs/local-basic/250203_1412_kvasirtoCVC_d7603
 CONFIG_FILE="${TEST_ROOT}/*${TEST_ROOT: -1}.py"
 CHECKPOINT_FILE="${TEST_ROOT}/latest.pth"
 SHOW_DIR="${TEST_ROOT}/preds"

@@ -1,0 +1,41 @@
+==> jobs/test_CVCtokvasir_res.out <==
+Global IoU: 0.7921798179349492, Global mean IoU: 0, Global Dice: 0.8492633487597192, Global mean Dice: 0
+
+==> jobs/test_flairtot1_res.out <==
+Global IoU: 0.24304606894894495, Global mean IoU: 0, Global Dice: 0.3560051218723536, Global mean Dice: 0
+
+==> jobs/test_flairtot2_res.out <==
+Global IoU: 0.3157848642625853, Global mean IoU: 0, Global Dice: 0.4342278232802104, Global mean Dice: 0
+
+==> jobs/test_i3tolw4_res.out <==
+Global IoU: 0.8030987197341938, Global mean IoU: 0, Global Dice: 0.8584117793874609, Global mean Dice: 0
+
+==> jobs/test_i3toweih_res.out <==
+Global IoU: 0.5797168862401811, Global mean IoU: 0, Global Dice: 0.6757871130493354, Global mean Dice: 0
+
+==> jobs/test_kvasirtoCVC_res.out <==
+Global IoU: 0.7639186124176804, Global mean IoU: 0, Global Dice: 0.8368111787487895, Global mean Dice: 0
+
+==> jobs/test_lw4toi3_res.out <==
+Global IoU: 0.8284372176241014, Global mean IoU: 0, Global Dice: 0.8765080716014447, Global mean Dice: 0
+
+==> jobs/test_lw4toweih_res.out <==
+Global IoU: 0.6929974745061149, Global mean IoU: 0, Global Dice: 0.7722321050466611, Global mean Dice: 0
+
+==> jobs/test_t1toflair_res.out <==
+Global IoU: 0.16338080236065616, Global mean IoU: 0, Global Dice: 0.2644335398609925, Global mean Dice: 0
+
+==> jobs/test_t1tot2_res.out <==
+Global IoU: 0.24569377594919609, Global mean IoU: 0, Global Dice: 0.36518642440183274, Global mean Dice: 0
+
+==> jobs/test_t2toflair_res.out <==
+Global IoU: 0.29311993138802184, Global mean IoU: 0, Global Dice: 0.41081276525009536, Global mean Dice: 0
+
+==> jobs/test_t2tot1_res.out <==
+Global IoU: 0.1932326487556813, Global mean IoU: 0, Global Dice: 0.3004177550455418, Global mean Dice: 0
+
+==> jobs/test_weihtoi3_res.out <==
+Global IoU: 0.3348354733365062, Global mean IoU: 0, Global Dice: 0.39325639085663205, Global mean Dice: 0
+
+==> jobs/test_weihtolw4_res.out <==
+Global IoU: 0.7832760883369935, Global mean IoU: 0, Global Dice: 0.8325362048748598, Global mean Dice: 0
