@@ -5,9 +5,11 @@
 sbatch slurm_scripts/test_CVCtokvasir_res.slurm
 sbatch slurm_scripts/test_flairtot1_res.slurm
 sbatch slurm_scripts/test_flairtot2_res.slurm
+sbatch slurm_scripts/test_i3multitolw4multi_res.slurm
 sbatch slurm_scripts/test_i3tolw4_res.slurm
 sbatch slurm_scripts/test_i3toweih_res.slurm
 sbatch slurm_scripts/test_kvasirtoCVC_res.slurm
+sbatch slurm_scripts/test_lw4multitoi3multi_res.slurm
 sbatch slurm_scripts/test_lw4toi3_res.slurm
 sbatch slurm_scripts/test_lw4toweih_res.slurm
 sbatch slurm_scripts/test_t1toflair_res.slurm

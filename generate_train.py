@@ -13,7 +13,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 # Base SLURM script template
 slurm_template = """#!/bin/bash
-#SBATCH -p publicgpu -A miv
+#SBATCH -p grantgpu -A g2024a219g
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16G
 #SBATCH --constraint="gpua100|gpuv100"

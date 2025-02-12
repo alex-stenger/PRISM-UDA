@@ -4,8 +4,10 @@ sbatch slurm_scripts/t2tot1_mic_hrda.slurm
 sbatch slurm_scripts/WeiHtoI3_mic_hrda.slurm
 sbatch slurm_scripts/t1toflair_mic_hrda.slurm
 sbatch slurm_scripts/LW4toI3_mic_hrda.slurm
+sbatch slurm_scripts/i3-multitolw4-multi_mic_hrda.slurm
 sbatch slurm_scripts/I3toLW4_mic_hrda.slurm
 sbatch slurm_scripts/t1tot2_mic_hrda.slurm
+sbatch slurm_scripts/lw4-multitoi3-multi_mic_hrda.slurm
 sbatch slurm_scripts/WeiHtoLW4_mic_hrda.slurm
 sbatch slurm_scripts/kvasirtoCVC_mic_hrda.slurm
 sbatch slurm_scripts/flairtot2_mic_hrda.slurm
