@@ -527,6 +527,11 @@ class DACS(UDADecorator):
                     pseudo_label_ref = self.network(concat)
                     pseudo_label = pseudo_label.squeeze(1)
 
+                    #plt.imshow(gt_semantic_seg[0].cpu().numpy()[0, :, :])
+                    #plt.show()
+                    #print("unique value", np.unique(pseudo_label.cpu().numpy()))
+                    #print("shape", np.shape(pseudo_label_ref.cpu().numpy()))
+
                 for j in range(batch_size):
                     rows, cols = 1, 4  # Increase cols to 4 for the new plot
                     fig, axs = plt.subplots(
@@ -568,8 +573,17 @@ class DACS(UDADecorator):
                     )
                     plt.close()
 
+                #For binary segmentation
                 #target_sam = target_sam.squeeze(1)  # Removes the singleton dimension
-                pseudo_label = (pseudo_label_ref.squeeze(1)>0.5).long()
+                #pseudo_label = (pseudo_label_ref.squeeze(1)>0.5).long()
+                
+                #For multilabel segmentation
+                pseudo_label = torch.zeros_like(pseudo_label_ref, dtype=torch.long) 
+                pseudo_label[pseudo_label_ref > 0.33] = 1
+                pseudo_label[pseudo_label_ref > 0.66] = 2
+                pseudo_label = pseudo_label.squeeze(1)
+                plt.imshow(pseudo_label[0].cpu().numpy())
+                plt.show()
 
             # Apply mixing
             mixed_img, mixed_lbl = [None] * batch_size, [None] * batch_size
