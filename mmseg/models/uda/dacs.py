@@ -223,17 +223,22 @@ class DACS(UDADecorator):
     
     def train_refinement_source(self, pl_source, sam_source, gt_source, network, optimizer, device): #ADDED
         if network is None : #Initialization du réseau et tutti quanti
-            network = UNet()
+            #network = UNet() #For binary
+            network = UNet(n_classes=3) #For multilabel
             network = network.to(device)
             optimizer = torch.optim.Adam(params=network.parameters(), lr=0.0001)
         
         network.train()
-        ce_loss = torch.nn.BCEWithLogitsLoss()
+        #ce_loss = torch.nn.BCEWithLogitsLoss() #uncomment for binary
+        ce_loss = torch.nn.CrossEntropyLoss() #For multilabel
         pl_source = pl_source.unsqueeze(1)
         concat = torch.cat((pl_source, sam_source), dim=1).float()
         
         pred = network(concat)
-        loss = ce_loss(pred, gt_source.float())
+        print("pred_shape", pred.shape, "pred_unique", np.unique(pred.detach().cpu().numpy()))
+        print("pred_shape", gt_source.shape, "pred_unique", np.unique(gt_source.detach().cpu().numpy()))
+        #loss = ce_loss(pred, gt_source.float()) #uncomment for binary
+        loss = ce_loss(pred, gt_source.squeeze(1).long()) #for multilabel
         optimizer.zero_grad()
         loss.backward()
         self.refin_loss_list.append(loss.item())
@@ -578,12 +583,14 @@ class DACS(UDADecorator):
                 #pseudo_label = (pseudo_label_ref.squeeze(1)>0.5).long()
                 
                 #For multilabel segmentation
-                pseudo_label = torch.zeros_like(pseudo_label_ref, dtype=torch.long) 
-                pseudo_label[pseudo_label_ref > 0.33] = 1
-                pseudo_label[pseudo_label_ref > 0.66] = 2
+                pseudo_label_ref_max = torch.amax(pseudo_label_ref, dim=1, keepdim=True)
+                pseudo_label = torch.zeros_like(pseudo_label_ref_max, dtype=torch.long)
+                pseudo_label[pseudo_label_ref_max > 0.33] = 1
+                pseudo_label[pseudo_label_ref_max > 0.66] = 2
+
+                #Let it uncommented for both
                 pseudo_label = pseudo_label.squeeze(1)
-                plt.imshow(pseudo_label[0].cpu().numpy())
-                plt.show()
+                
 
             # Apply mixing
             mixed_img, mixed_lbl = [None] * batch_size, [None] * batch_size
