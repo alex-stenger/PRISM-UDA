@@ -519,12 +519,12 @@ class DACS(UDADecorator):
             #classes = torch.unique(gt_semantic_seg)
             #nclasses = classes.shape[0]
             #print("number of classes ?", nclasses)
-            if (self.local_iter < 7500):
-            #if (self.is_sliding_mean_loss_decreased(self.masked_loss_list, self.local_iter) and self.local_iter < 7500):
+            #if (self.local_iter < 7500):
+            if (self.is_sliding_mean_loss_decreased(self.masked_loss_list, self.local_iter) and self.local_iter < 7500):
                 self.network, self.optimizer = self.train_refinement_source(pseudo_label_source, sam_pseudo_label, gt_semantic_seg, self.network, self.optimizer, dev)
 
-            if (self.local_iter < 7500):
-            #if self.is_sliding_mean_loss_decreased(self.masked_loss_list, self.local_iter) :
+            #if (self.local_iter < 7500):
+            if self.is_sliding_mean_loss_decreased(self.masked_loss_list, self.local_iter) :
                 with torch.no_grad():
                     self.network.eval()
                     pseudo_label = pseudo_label.unsqueeze(1)
@@ -532,10 +532,8 @@ class DACS(UDADecorator):
                     pseudo_label_ref = self.network(concat)
                     pseudo_label = pseudo_label.squeeze(1)
 
-                    pseudo_label_ref_max = torch.amax(pseudo_label_ref, dim=1, keepdim=True)
-                    pseudo_label_ref2 = torch.zeros_like(pseudo_label_ref_max, dtype=torch.long)
-                    pseudo_label_ref2[pseudo_label_ref_max > 0.33] = 1
-                    pseudo_label_ref2[pseudo_label_ref_max > 0.66] = 2
+                    softmax = torch.nn.Softmax(dim=1)
+                    pseudo_label_ref2 = torch.argmax(softmax(pseudo_label_ref),axis=1).unsqueeze(1)
 
                     #plt.imshow(gt_semantic_seg[0].cpu().numpy()[0, :, :])
                     #plt.show()
@@ -591,10 +589,8 @@ class DACS(UDADecorator):
                 #pseudo_label = (pseudo_label_ref.squeeze(1)>0.5).long()
                 
                 #For multilabel segmentation
-                pseudo_label_ref_max = torch.amax(pseudo_label_ref, dim=1, keepdim=True)
-                pseudo_label = torch.zeros_like(pseudo_label_ref_max, dtype=torch.long)
-                pseudo_label[pseudo_label_ref_max > 0.33] = 1
-                pseudo_label[pseudo_label_ref_max > 0.66] = 2
+                softmax = torch.nn.Softmax(dim=1)
+                pseudo_label = torch.argmax(softmax(pseudo_label_ref),axis=1).unsqueeze(1)
 
                 #Let it uncommented for both
                 pseudo_label = pseudo_label.squeeze(1)
