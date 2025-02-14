@@ -519,12 +519,12 @@ class DACS(UDADecorator):
             #classes = torch.unique(gt_semantic_seg)
             #nclasses = classes.shape[0]
             #print("number of classes ?", nclasses)
-            #if (self.local_iter < 7500):
-            if (self.is_sliding_mean_loss_decreased(self.masked_loss_list, self.local_iter) and self.local_iter < 7500):
+            if (self.local_iter < 7500):
+            #if (self.is_sliding_mean_loss_decreased(self.masked_loss_list, self.local_iter) and self.local_iter < 7500):
                 self.network, self.optimizer = self.train_refinement_source(pseudo_label_source, sam_pseudo_label, gt_semantic_seg, self.network, self.optimizer, dev)
 
-            #if (self.local_iter < 7500):
-            if self.is_sliding_mean_loss_decreased(self.masked_loss_list, self.local_iter) :
+            if (self.local_iter < 7500):
+            #if self.is_sliding_mean_loss_decreased(self.masked_loss_list, self.local_iter) :
                 with torch.no_grad():
                     self.network.eval()
                     pseudo_label = pseudo_label.unsqueeze(1)
@@ -532,13 +532,18 @@ class DACS(UDADecorator):
                     pseudo_label_ref = self.network(concat)
                     pseudo_label = pseudo_label.squeeze(1)
 
+                    pseudo_label_ref_max = torch.amax(pseudo_label_ref, dim=1, keepdim=True)
+                    pseudo_label_ref2 = torch.zeros_like(pseudo_label_ref_max, dtype=torch.long)
+                    pseudo_label_ref2[pseudo_label_ref_max > 0.33] = 1
+                    pseudo_label_ref2[pseudo_label_ref_max > 0.66] = 2
+
                     #plt.imshow(gt_semantic_seg[0].cpu().numpy()[0, :, :])
                     #plt.show()
                     #print("unique value", np.unique(pseudo_label.cpu().numpy()))
                     #print("shape", np.shape(pseudo_label_ref.cpu().numpy()))
 
                 for j in range(batch_size):
-                    rows, cols = 1, 4  # Increase cols to 4 for the new plot
+                    rows, cols = 1, 5  # Increase cols to 4 for the new plot
                     fig, axs = plt.subplots(
                         rows,
                         cols,
@@ -565,6 +570,9 @@ class DACS(UDADecorator):
 
                     axs[3].imshow(pseudo_label_ref[j].cpu().numpy()[0, :, :], cmap='gray')  # New plot
                     axs[3].set_title('Pseudo Label Ref')
+
+                    axs[4].imshow(pseudo_label_ref2[j].cpu().numpy()[0, :, :], cmap='gray')  # New plot
+                    axs[4].set_title('pl_after_post')
 
                     # Turn off axis for all subplots
                     for ax in axs.flat:
