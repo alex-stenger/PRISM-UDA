@@ -69,7 +69,7 @@ them to `data/gta`.
 **Première étape** : Lancer SAM sur ces deux datasets, et mettre les résultats dans un sous-dossier "sam" (à la manière des autres données que je te donne, il suffit de regarder la structure des fichiers et dossiers pour comprendre
 
 **Deuxième étape** : Adapter les fichiers de pre-processing disponibles dans ```tools/convert_datasets```.
-Il faut adapter les fichiers ```tools/convert_datasets/cityscapes.py``` et ```tools/convert_datasets/gta.py``` en s'inspirant des fichier ```tools/convert_datasets/I3-LW4.py``` et ```tools/convert_datasets/I3-LW4_multi.py```.
+Il faut adapter les fichiers ```tools/convert_datasets/cityscapes.py``` et ```tools/convert_datasets/gta.py``` en s'inspirant des fichier ```tools/convert_datasets/I3-LW4_sam.py``` et ```tools/convert_datasets/I3-LW4_sam_multi.py```.
 Ce sont des codes de pré-processing des données essentiels au bon fonctionnement du code d'entraînement.
 Une fois que ces codes seront adaptés, il faudra les lancer sur les datasets cityscapes et gta5 avec les commandes suivantes :
 ```
