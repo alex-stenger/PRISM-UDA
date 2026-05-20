@@ -118,3 +118,7 @@ echo "============================================"
 echo "Installation complete!"
 echo "To activate: source $CONDA_BASE/etc/profile.d/conda.sh && conda activate $ENV_NAME"
 echo "============================================"
+
+#if it does not work, also we can
+#pip install open_clip_torch==2.24.0 timm==0.9.16
+#pip install transformers
